@@ -1,24 +1,43 @@
-import './style.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+/* eslint-env browser */
+import './theme.css';
+import { NotesProvider } from './store/NotesContext.js';
+import { App } from './ui/App.js';
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+// Mount the app
+const root = document.getElementById('app');
+root.innerHTML = '';
 
-setupCounter(document.querySelector('#counter'))
+/**
+ * Simple mount helper to keep code modular without frameworks.
+ * We compose our SPA using vanilla JS + Context-style store.
+ */
+function mount() {
+  // Create container
+  const container = document.createElement('div');
+  container.id = 'app-root';
+  root.appendChild(container);
+
+  // Provide store and render the App shell
+  NotesProvider.init();
+  App.render(container);
+}
+
+mount();
+
+// Keyboard shortcut: Ctrl/Cmd + S to save current note via store
+document.addEventListener('keydown', (e) => {
+  const platform =
+    (typeof globalThis !== 'undefined' &&
+      globalThis.navigator &&
+      globalThis.navigator.platform) ||
+    '';
+  const isMac = String(platform).toUpperCase().includes('MAC');
+
+  if ((isMac ? e.metaKey : e.ctrlKey) && String(e.key).toLowerCase() === 's') {
+    e.preventDefault();
+    const store = NotesProvider.get();
+    if (store && store.saveSelectedNote) {
+      store.saveSelectedNote();
+    }
+  }
+});
